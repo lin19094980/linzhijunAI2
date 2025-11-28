@@ -2,7 +2,22 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey) {
+    console.error("Gemini API Key is missing. Please set API_KEY in your environment variables.");
+    // Return a mock error result if key is missing to prevent crash
+    return {
+      analysis: "系统错误：未检测到法官的执照（API Key）。请联系管理员在后台设置 API_KEY。",
+      femaleResponsibility: 50,
+      maleResponsibility: 50,
+      verdictSummary: "无法连接到柯基法官大脑。",
+      winner: "tie",
+      advice: "请检查环境变量设置。"
+    };
+  }
+
+  const ai = new GoogleGenAI({ apiKey: apiKey });
 
   const systemInstruction = `
     你是一位名叫"屁屁"的柯基情侣法官。
