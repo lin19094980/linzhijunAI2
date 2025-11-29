@@ -2,18 +2,18 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
-  const apiKey = process.env.API_KEY;
+  // 根据您的要求，将 API Key 直接写入代码以解决 Vercel 环境变量读取问题
+  const apiKey = "AIzaSyCnN4MqV8XNR1uChfzEOHmzs0DOWYMQhmQ";
   
   if (!apiKey) {
-    console.error("Gemini API Key is missing. Please set API_KEY in your environment variables.");
-    // Return a mock error result if key is missing to prevent crash
+    console.error("Gemini API Key is missing.");
     return {
-      analysis: "系统错误：未检测到法官的执照（API Key）。请联系管理员在后台设置 API_KEY。",
+      analysis: "系统错误：未检测到法官的执照（API Key）。",
       femaleResponsibility: 50,
       maleResponsibility: 50,
       verdictSummary: "无法连接到柯基法官大脑。",
       winner: "tie",
-      advice: "请检查环境变量设置。"
+      advice: "请检查代码中的 API Key 设置。"
     };
   }
 
@@ -93,7 +93,6 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
     return JSON.parse(text) as VerdictResult;
   } catch (error) {
     console.error("Gemini Judging Error:", error);
-    // Fallback mock response in case of API failure (for graceful degradation, though typically we'd show error UI)
     return {
       analysis: "汪！本法官刚才打了个盹，没听清你们说什么。不过看起来都有点小问题哦！",
       femaleResponsibility: 50,
