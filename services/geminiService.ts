@@ -2,18 +2,17 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
-  // 根据您的要求，将 API Key 直接写入代码以解决 Vercel 环境变量读取问题
-  const apiKey = "AIzaSyCnN4MqV8XNR1uChfzEOHmzs0DOWYMQhmQ";
+  const apiKey = process.env.API_KEY;
   
   if (!apiKey) {
     console.error("Gemini API Key is missing.");
     return {
-      analysis: "系统错误：未检测到法官的执照（API Key）。",
+      analysis: "系统错误：未检测到法官的执照（API Key）。请联系管理员在后台设置 API_KEY。",
       femaleResponsibility: 50,
       maleResponsibility: 50,
       verdictSummary: "无法连接到柯基法官大脑。",
       winner: "tie",
-      advice: "请检查代码中的 API Key 设置。"
+      advice: "请检查后台环境变量设置。"
     };
   }
 
