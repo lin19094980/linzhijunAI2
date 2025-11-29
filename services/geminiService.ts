@@ -2,41 +2,34 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
-  // 兼容性处理：尝试从多种环境变量来源获取 API Key
-  // 1. process.env.API_KEY: 适用于 Node 环境或已配置 define 的构建环境
-  // 2. import.meta.env.VITE_API_KEY: 适用于 Vercel + Vite 的默认客户端构建环境
+  // 调试日志：在浏览器控制台(F12)可以看到是否成功获取到了 Key
+  console.log("柯基法官正在尝试读取执照 (API Key)...");
+
   let apiKey = '';
   
-  try {
-    // 优先尝试读取 process.env.API_KEY
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      apiKey = process.env.API_KEY;
-    }
-  } catch (e) {
-    // 忽略 process 未定义的错误
+  // 策略 1: 优先读取 Vite 注入的环境变量 (Vercel 部署必须使用 VITE_ 前缀)
+  // @ts-ignore
+  if (import.meta && import.meta.env && import.meta.env.VITE_API_KEY) {
+    // @ts-ignore
+    apiKey = import.meta.env.VITE_API_KEY;
+    console.log("成功读取到 VITE_API_KEY ✅");
+  } 
+  // 策略 2: 读取 Node.js 风格的环境变量 (本地开发或特殊构建配置)
+  else if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+    apiKey = process.env.API_KEY;
+    console.log("成功读取到 process.env.API_KEY ✅");
   }
 
+  // 如果依然没有 Key，返回详细的错误指引
   if (!apiKey) {
-    try {
-      // @ts-ignore
-      if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
-        // @ts-ignore
-        apiKey = import.meta.env.VITE_API_KEY;
-      }
-    } catch (e) {
-      console.warn("尝试读取 VITE_API_KEY 失败", e);
-    }
-  }
-  
-  if (!apiKey) {
-    console.error("Gemini API Key is missing. 请在 Vercel 环境变量中设置 VITE_API_KEY。");
+    console.error("❌ 错误：未找到 API Key。环境变量 VITE_API_KEY 为空。");
     return {
-      analysis: "系统错误：未检测到法官的执照（API Key）。请确保在 Vercel 后台设置了名为 'VITE_API_KEY' 的环境变量。",
+      analysis: "系统错误：法官的执照丢了！(未检测到 API Key)",
       femaleResponsibility: 50,
       maleResponsibility: 50,
-      verdictSummary: "无法连接到柯基法官大脑。",
+      verdictSummary: "无法连接到 AI 大脑。",
       winner: "tie",
-      advice: "请联系管理员在 Vercel Settings -> Environment Variables 中添加 VITE_API_KEY。"
+      advice: "请在 Vercel 后台 Settings -> Environment Variables 中添加名为 'VITE_API_KEY' 的变量，并重新部署 (Redeploy)。"
     };
   }
 
@@ -117,12 +110,12 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
   } catch (error) {
     console.error("Gemini Judging Error:", error);
     return {
-      analysis: "汪！本法官刚才打了个盹，没听清你们说什么。不过看起来都有点小问题哦！",
+      analysis: "汪！本法官刚才打了个盹，网络连接好像有点问题。",
       femaleResponsibility: 50,
       maleResponsibility: 50,
-      verdictSummary: "双方都有责任，建议互相亲亲抱抱举高高！",
+      verdictSummary: "连接超时或配额不足。",
       winner: "tie",
-      advice: "多沟通，少冷战，实在不行给本法官买点狗粮吧！"
+      advice: "请检查您的 API Key 是否有效，或稍后再试。"
     };
   }
 };
