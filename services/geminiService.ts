@@ -2,17 +2,41 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
-  const apiKey = process.env.API_KEY;
+  // 兼容性处理：尝试从多种环境变量来源获取 API Key
+  // 1. process.env.API_KEY: 适用于 Node 环境或已配置 define 的构建环境
+  // 2. import.meta.env.VITE_API_KEY: 适用于 Vercel + Vite 的默认客户端构建环境
+  let apiKey = '';
+  
+  try {
+    // 优先尝试读取 process.env.API_KEY
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      apiKey = process.env.API_KEY;
+    }
+  } catch (e) {
+    // 忽略 process 未定义的错误
+  }
+
+  if (!apiKey) {
+    try {
+      // @ts-ignore
+      if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_KEY) {
+        // @ts-ignore
+        apiKey = import.meta.env.VITE_API_KEY;
+      }
+    } catch (e) {
+      console.warn("尝试读取 VITE_API_KEY 失败", e);
+    }
+  }
   
   if (!apiKey) {
-    console.error("Gemini API Key is missing.");
+    console.error("Gemini API Key is missing. 请在 Vercel 环境变量中设置 VITE_API_KEY。");
     return {
-      analysis: "系统错误：未检测到法官的执照（API Key）。请联系管理员在后台设置 API_KEY。",
+      analysis: "系统错误：未检测到法官的执照（API Key）。请确保在 Vercel 后台设置了名为 'VITE_API_KEY' 的环境变量。",
       femaleResponsibility: 50,
       maleResponsibility: 50,
       verdictSummary: "无法连接到柯基法官大脑。",
       winner: "tie",
-      advice: "请检查后台环境变量设置。"
+      advice: "请联系管理员在 Vercel Settings -> Environment Variables 中添加 VITE_API_KEY。"
     };
   }
 
