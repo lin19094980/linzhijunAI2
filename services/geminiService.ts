@@ -1,4 +1,3 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
@@ -33,19 +32,22 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
     };
   }
 
-  const ai = new GoogleGenAI({ apiKey: apiKey });
-
   const systemInstruction = `
     你是一位名叫"屁屁"的柯基情侣法官。
     你的性格：可爱、幽默、正直、虽然是狗狗但是很有智慧，说话风格要带点"汪"或者可爱的语气词。
     你的任务：分析情侣之间的争吵，判断谁的责任更大，并给出理由和建议。
     受众：年轻情侣，主要是女孩子喜欢的风格，所以语气要温和但切中要害。
     
-    输出要求：
-    1. 分析双方的行为。
-    2. 给出一个责任比例（双方加起来必须是100%）。
-    3. 判定结果 summary。
-    4. 给出具体的解决方案和避免未来的争吵的建议。
+    IMPORTANT: You must output valid JSON.
+    输出结构必须严格符合以下 JSON 格式：
+    {
+      "analysis": "对整个事件的幽默且深刻的分析",
+      "femaleResponsibility": number (0-100),
+      "maleResponsibility": number (0-100),
+      "verdictSummary": "最终判决结果，指出谁的问题更多以及核心原因",
+      "winner": "female" | "male" | "tie",
+      "advice": "如何避免此类问题再次发生的温情建议"
+    }
   `;
 
   const prompt = `
@@ -55,60 +57,49 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
     
     👨 男方 (${data.maleName}) 陈述：${data.maleArgument}
     
-    请根据以上内容进行裁决。
+    请根据以上内容进行裁决，并确保返回纯 JSON 格式。
   `;
 
-  const responseSchema: Schema = {
-    type: Type.OBJECT,
-    properties: {
-      analysis: {
-        type: Type.STRING,
-        description: "对整个事件的幽默且深刻的分析",
-      },
-      femaleResponsibility: {
-        type: Type.INTEGER,
-        description: "女方的责任百分比 (0-100)",
-      },
-      maleResponsibility: {
-        type: Type.INTEGER,
-        description: "男方的责任百分比 (0-100)",
-      },
-      verdictSummary: {
-        type: Type.STRING,
-        description: "最终判决结果，指出谁的问题更多以及核心原因",
-      },
-      winner: {
-        type: Type.STRING,
-        enum: ["female", "male", "tie"],
-        description: "谁更有理（责任更小的一方赢）",
-      },
-      advice: {
-        type: Type.STRING,
-        description: "如何避免此类问题再次发生的温情建议",
-      },
-    },
-    required: ["analysis", "femaleResponsibility", "maleResponsibility", "verdictSummary", "winner", "advice"],
-  };
-
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: responseSchema,
+    const response = await fetch("https://shell.wyzai.top/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
       },
+      body: JSON.stringify({
+        model: "gpt-4o-mini", // 使用通用高性价比模型
+        messages: [
+          { role: "system", content: systemInstruction },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        response_format: { type: "json_object" }
+      })
     });
 
-    const text = response.text;
-    if (!text) {
-      throw new Error("No response from AI Judge");
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`API Error: ${response.status} ${errText}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content;
+
+    if (!content) {
+      throw new Error("No response content from AI");
     }
     
-    return JSON.parse(text) as VerdictResult;
+    // Parse JSON safely
+    try {
+        return JSON.parse(content) as VerdictResult;
+    } catch (e) {
+        console.error("Failed to parse JSON:", content);
+        throw new Error("Invalid JSON response");
+    }
+
   } catch (error) {
-    console.error("Gemini Judging Error:", error);
+    console.error("Judging Error:", error);
     return {
       analysis: "汪！本法官刚才打了个盹，网络连接好像有点问题。",
       femaleResponsibility: 50,
