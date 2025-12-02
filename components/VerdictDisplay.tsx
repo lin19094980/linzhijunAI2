@@ -131,7 +131,7 @@ export const VerdictDisplay: React.FC<VerdictDisplayProps> = ({ verdict, onReset
         <div className="bg-gradient-to-tr from-gray-50 to-white p-4 rounded-xl inline-block shadow-inner border border-gray-100 mb-4">
             {/* Placeholder QR Code for "Buy me a coffee" - Replace data with real link in production */}
             <img 
-                src="https://github.com/lin19094980/linzhijunAI2/blob/main/components/erweima.jpg" 
+                src="erweima.jpg" 
                 alt="打赏二维码" 
                 className="w-32 h-32 rounded-lg mix-blend-multiply"
             />
