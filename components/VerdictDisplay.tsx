@@ -136,7 +136,7 @@ export const VerdictDisplay: React.FC<VerdictDisplayProps> = ({ verdict, onReset
                 className="w-32 h-32 rounded-lg mix-blend-multiply"
             />
         </div>
-        <p className="text-gray-500 font-medium">觉得不错，欢迎打赏支持柯基法官买罐头~ 🦴</p>
+        <p className="text-gray-500 font-medium">觉得不错，欢迎打赏罐头给柯基法官~ 🦴</p>
         <p className="text-xs text-gray-400 mt-2">您的支持是我们继续断案的动力！</p>
       </div>
 
