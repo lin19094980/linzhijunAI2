@@ -68,7 +68,7 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
         "Authorization": `Bearer ${apiKey}`
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // 使用通用高性价比模型
+        model: "gemini-2.5-flash", // 使用通用高性价比模型
         messages: [
           { role: "system", content: systemInstruction },
           { role: "user", content: prompt }

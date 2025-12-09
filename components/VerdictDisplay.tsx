@@ -131,12 +131,12 @@ export const VerdictDisplay: React.FC<VerdictDisplayProps> = ({ verdict, onReset
         <div className="bg-gradient-to-tr from-gray-50 to-white p-4 rounded-xl inline-block shadow-inner border border-gray-100 mb-4">
             {/* Placeholder QR Code for "Buy me a coffee" - Replace data with real link in production */}
             <img 
-                src="http://yemanai.cn/img/erweima.jpg" 
+                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=ThankYouForSupport&color=E69500" 
                 alt="打赏二维码" 
                 className="w-32 h-32 rounded-lg mix-blend-multiply"
             />
         </div>
-        <p className="text-gray-500 font-medium">觉得不错，欢迎打赏罐头给柯基法官~ 🦴</p>
+        <p className="text-gray-500 font-medium">觉得不错，欢迎打赏支持柯基法官买罐头~ 🦴</p>
         <p className="text-xs text-gray-400 mt-2">您的支持是我们继续断案的动力！</p>
       </div>
 
