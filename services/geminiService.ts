@@ -57,7 +57,7 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
         "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: "deepseek-chat", 
+        model: "gemini-2.5-flash", 
         messages: [
           { role: "system", content: systemInstruction },
           { role: "user", content: prompt }
