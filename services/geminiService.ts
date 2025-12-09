@@ -1,34 +1,23 @@
 import { CaseData, VerdictResult } from "../types";
 
 export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
-  // 调试日志：在浏览器控制台(F12)可以看到是否成功获取到了 Key
-  console.log("柯基法官正在尝试读取执照 (API Key)...");
+  // 调试日志
+  console.log("柯基法官正在尝试连接外部大脑...");
 
-  let apiKey = '';
-  
-  // 策略 1: 优先读取 Vite 注入的环境变量 (Vercel 部署必须使用 VITE_ 前缀)
-  // @ts-ignore
-  if (import.meta && import.meta.env && import.meta.env.VITE_API_KEY) {
-    // @ts-ignore
-    apiKey = import.meta.env.VITE_API_KEY;
-    console.log("成功读取到 VITE_API_KEY ✅");
-  } 
-  // 策略 2: 读取 Node.js 风格的环境变量 (本地开发或特殊构建配置)
-  else if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-    apiKey = process.env.API_KEY;
-    console.log("成功读取到 process.env.API_KEY ✅");
-  }
+  // 用户指定的外部 API 配置
+  // 注意：在生产环境中，建议将 Key 放入环境变量 (process.env.API_KEY)
+  const API_KEY = "sk-HXQaytJxsAyATscFXY5MSVwKeKvnxak9YDa8KWGfaVnct4Bt";
+  const API_URL = "https://shell.wyzai.top/v1/chat/completions";
 
-  // 如果依然没有 Key，返回详细的错误指引
-  if (!apiKey) {
-    console.error("❌ 错误：未找到 API Key。环境变量 VITE_API_KEY 为空。");
+  if (!API_KEY) {
+    console.error("❌ 错误：未配置 API Key");
     return {
-      analysis: "系统错误：法官的执照丢了！(未检测到 API Key)",
+      analysis: "系统错误：法官的执照丢了！(未配置 API Key)",
       femaleResponsibility: 50,
       maleResponsibility: 50,
       verdictSummary: "无法连接到 AI 大脑。",
       winner: "tie",
-      advice: "请在 Vercel 后台 Settings -> Environment Variables 中添加名为 'VITE_API_KEY' 的变量，并重新部署 (Redeploy)。"
+      advice: "请检查 API配置。"
     };
   }
 
@@ -61,14 +50,14 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
   `;
 
   try {
-    const response = await fetch("https://shell.wyzai.top/v1/chat/completions", {
+    const response = await fetch(API_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
+        "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: "gemini-2.5-flash", // 使用通用高性价比模型
+        model: "deepseek-chat", 
         messages: [
           { role: "system", content: systemInstruction },
           { role: "user", content: prompt }
@@ -80,6 +69,7 @@ export const judgeCase = async (data: CaseData): Promise<VerdictResult> => {
 
     if (!response.ok) {
         const errText = await response.text();
+        console.error(`API Error: ${response.status} ${errText}`);
         throw new Error(`API Error: ${response.status} ${errText}`);
     }
 
